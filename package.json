@@ -1,0 +1,21 @@
+{
+  "name": "@hydrophobefireman/module-nomodule",
+  "version": "1.0.1",
+  "license": "MIT",
+  "description": "Fork of https://github.com/JoviDeCroock/webpack-module-nomodule-plugin, to allow future optimisations for ui-lib",
+  "main": "src/index.js",
+  "scripts": {},
+  "devDependencies": {
+    "webpack": "^5.9.0"
+  },
+  "dependencies": {
+    "fs-extra": "9.0.1"
+  },
+  "peerDependencies": {
+    "html-webpack-plugin": "^3.0.0 || ^4.0.0",
+    "webpack": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=6.9"
+  }
+}
