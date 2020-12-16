@@ -13,9 +13,13 @@ const opts = {
   legacy: "legacy",
 };
 class HtmlWebpackEsmodulesPlugin {
-  constructor(mode = "modern", outputMode = OUTPUT_MODES.EFFICIENT) {
+  constructor(
+    mode = "modern",
+    outputMode = OUTPUT_MODES.EFFICIENT,
+    preload = true
+  ) {
     this.outputMode = outputMode;
-
+    this.preload = preload;
     this.mode = opts[mode];
     if (!this.mode) {
       throw new Error(
@@ -146,10 +150,14 @@ class HtmlWebpackEsmodulesPlugin {
     });
 
     modernScripts.forEach((modernScript) => {
-      head.push({
-        tagName: "link",
-        attributes: { rel: "modulepreload", href: modernScript.attributes.src },
-      });
+      if (this.preload)
+        head.push({
+          tagName: "link",
+          attributes: {
+            rel: "modulepreload",
+            href: modernScript.attributes.src,
+          },
+        });
     });
 
     const loadScript = makeLoadScript(modernScripts, legacyScripts);
