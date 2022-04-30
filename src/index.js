@@ -9,11 +9,11 @@ const {version} = require("webpack");
 const {inlineFont, fontAsLinkTag} = require("./extra/font-util");
 
 class HtmlWebpackEsmodulesPlugin {
-  constructor(
+  constructor({
     mode = "modern",
     outputMode = OUTPUT_MODES.EFFICIENT,
-    fonts = []
-  ) {
+    fonts = [],
+  }) {
     this.outputMode = outputMode;
     this._fonts = fonts;
     this._inlineFonts = process.env.NODE_ENV === "production";
