@@ -1,4 +1,5 @@
-const fetch = require("node-fetch");
+const _fetch =
+  typeof fetch === "undefined" ? require("node-fetch") : globalThis.fetch;
 
 const urlReg = /url\s*\((\s*["']?)\s*(\/)(?!\/)/gm;
 const USER_AGENT =
@@ -13,7 +14,7 @@ async function inlineFont({href, ...rest}) {
       console.log("GET:", href);
       const u = new URL(href);
       const orig = u.origin;
-      const response = await fetch(href, {
+      const response = await _fetch(href, {
         headers: {"user-agent": USER_AGENT},
       });
       const text = await response.text();
