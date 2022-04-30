@@ -1,6 +1,6 @@
 {
   "name": "@hydrophobefireman/module-nomodule",
-  "version": "1.0.3",
+  "version": "2.0.1",
   "license": "MIT",
   "description": "Fork of https://github.com/JoviDeCroock/webpack-module-nomodule-plugin, to allow future optimisations for ui-lib",
   "main": "src/index.js",
