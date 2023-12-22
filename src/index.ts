@@ -1,22 +1,19 @@
-"use strict";
+import path from "path";
 
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const fs = require("fs-extra");
-const {OUTPUT_MODES, safariFixScript, ID} = require("./constants");
-const {makeLoadScript} = require("./utils");
-const {version} = require("webpack");
-const {inlineFont, fontAsLinkTag} = require("./extra/font-util");
+import fs from "fs-extra";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import {Compilation, Compiler, WebpackPluginInstance, version} from "webpack";
 
-class HtmlWebpackEsmodulesPlugin {
-  constructor({
-    mode = "modern",
-    outputMode = OUTPUT_MODES.EFFICIENT,
-    fonts = [],
-  }) {
+import {ID, OUTPUT_MODES, safariFixScript} from "./constants";
+import {FontInlineWebpackPlugin} from "./font-inline.js";
+import {makeLoadScript} from "./utils";
+
+class HtmlWebpackEsmodulesPlugin implements WebpackPluginInstance {
+  outputMode: string;
+  mode: string;
+  _isWebpack5: boolean;
+  constructor({mode = "modern", outputMode = OUTPUT_MODES.EFFICIENT}) {
     this.outputMode = outputMode;
-    this._fonts = fonts;
-    this._inlineFonts = process.env.NODE_ENV === "production";
     switch (mode) {
       case "module":
       case "modern":
@@ -31,12 +28,11 @@ class HtmlWebpackEsmodulesPlugin {
           `The mode has to be one of: [modern, legacy, module, nomodule], you provided ${mode}.`
         );
     }
+
     this._isWebpack5 = version.split(".")[0] === "5";
   }
 
-  _isWebpack5 = false;
-
-  apply(compiler) {
+  apply(compiler: Compiler) {
     compiler.hooks.compilation.tap(ID, (compilation) => {
       // Support newest and oldest version.
       if (HtmlWebpackPlugin.getHooks) {
@@ -51,11 +47,13 @@ class HtmlWebpackEsmodulesPlugin {
           );
         }
       } else {
+        //@ts-ignore
         compilation.hooks.htmlWebpackPluginAlterAssetTags.tapAsync(
           {name: ID, stage: Infinity},
           this.alterAssetTagGroups.bind(this, compiler, compilation)
         );
         if (this.outputMode === OUTPUT_MODES.MINIMAL) {
+          //@ts-ignore
           compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tap(
             ID,
             this.beforeEmitHtml.bind(this)
@@ -66,8 +64,8 @@ class HtmlWebpackEsmodulesPlugin {
   }
 
   alterAssetTagGroups(
-    compiler,
-    compilation,
+    compiler: Compiler,
+    compilation: Compilation,
     {plugin, bodyTags: body, headTags: head, ...rest},
     cb
   ) {
@@ -75,7 +73,7 @@ class HtmlWebpackEsmodulesPlugin {
     if (!body) body = rest.body;
     if (!head) head = rest.head;
 
-    const targetDir = compiler.options.output.path;
+    const targetDir = compiler.options.output.path!;
     // get stats, write to disk
     const htmlName = path.basename(plugin.options.filename);
     // Watch out for output files in sub directories
@@ -89,16 +87,16 @@ class HtmlWebpackEsmodulesPlugin {
       fs.mkdirpSync(path.dirname(tempFilename));
       // Only keep the scripts so we can't add css etc twice.
       const newBody = body.filter(
-        (a) => a.tagName === "script" && a.attributes
+        (a: any) => a.tagName === "script" && a.attributes
       );
       if (this.mode === "legacy") {
         // Empty nomodule in legacy build
-        newBody.forEach((a) => {
+        newBody.forEach((a: any) => {
           a.attributes.nomodule = "";
         });
       } else {
         // Module in the new build
-        newBody.forEach((a) => {
+        newBody.forEach((a: any) => {
           a.attributes.type = "module";
           a.attributes.crossOrigin = "anonymous";
         });
@@ -114,9 +112,6 @@ class HtmlWebpackEsmodulesPlugin {
       // Also write the file immediately to avoid race-conditions
       fs.writeFileSync(tempFilename, assetContents);
       // Tell the compiler to continue.
-      !this._inlineFonts &&
-        this._fonts &&
-        this._fonts.map((x) => head.push(...fontAsLinkTag(x)));
       return cb();
     }
 
@@ -150,18 +145,7 @@ class HtmlWebpackEsmodulesPlugin {
       compilation.deleteAsset(assetName);
     }
     fs.removeSync(tempFilename);
-    if (this._inlineFonts) {
-      console.log("Inlining fonts");
-      Promise.all(
-        this._fonts.map(async (font) => {
-          head.push(...(await inlineFont(font)));
-        })
-      ).then(() => cb());
-    } else {
-      console.log("Keeping fonts as link tags");
-      this._fonts.map((x) => head.push(...fontAsLinkTag(x)));
-      cb();
-    }
+    cb();
   }
 
   beforeEmitHtml(data) {
@@ -171,13 +155,13 @@ class HtmlWebpackEsmodulesPlugin {
   downloadEfficient(existingAssets, body, head) {
     const isModern = this.mode === "modern";
     const legacyScripts = (isModern ? existingAssets : body).filter(
-      (tag) => tag.tagName === "script" && tag.attributes.type !== "module"
+      (tag: any) => tag.tagName === "script" && tag.attributes.type !== "module"
     );
     const modernScripts = (isModern ? body : existingAssets).filter(
-      (tag) => tag.tagName === "script" && tag.attributes.type === "module"
+      (tag: any) => tag.tagName === "script" && tag.attributes.type === "module"
     );
     const scripts = body.filter((tag) => tag.tagName === "script");
-    scripts.forEach((s) => {
+    scripts.forEach((s: any) => {
       body.splice(body.indexOf(s), 1);
     });
 
@@ -209,4 +193,4 @@ class HtmlWebpackEsmodulesPlugin {
 }
 
 exports.OUTPUT_MODES = OUTPUT_MODES;
-module.exports = HtmlWebpackEsmodulesPlugin;
+module.exports = {HtmlWebpackEsmodulesPlugin, FontInlineWebpackPlugin};

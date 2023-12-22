@@ -20,3 +20,7 @@ export interface HtmlTagObject {
    */
   innerHTML?: string;
 }
+
+export interface Font {
+  href: string;
+}

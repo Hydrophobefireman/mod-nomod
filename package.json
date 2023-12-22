@@ -1,10 +1,14 @@
 {
   "name": "@hydrophobefireman/module-nomodule",
-  "version": "2.0.3",
+  "version": "3.0.0",
   "license": "MIT",
   "description": "Fork of https://github.com/JoviDeCroock/webpack-module-nomodule-plugin, to allow future optimisations for ui-lib",
-  "main": "src/index.js",
-  "scripts": {},
+  "main": "dist.js",
+  "scripts": {
+    "prebuild": "tsc --noEmit",
+    "prepublish": "npm run build",
+    "build": "esbuild src/index.ts --bundle --outfile=dist.js --platform=node --packages=external"
+  },
   "dependencies": {
     "fs-extra": "9.0.1",
     "node-fetch": "^2.6.1"
@@ -23,5 +27,10 @@
   ],
   "engines": {
     "node": ">=6.9"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "esbuild": "^0.19.10",
+    "typescript": "^5.3.3"
   }
 }
